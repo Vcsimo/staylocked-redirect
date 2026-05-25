@@ -7,7 +7,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
         body {
             min-height: 100vh;
             display: flex;
@@ -17,7 +16,6 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             padding: 20px;
         }
-
         .card {
             background: #1a1a1a;
             border: 0.5px solid rgba(255,255,255,0.1);
@@ -27,44 +25,11 @@
             max-width: 400px;
             text-align: center;
         }
-
         .lock { font-size: 48px; margin-bottom: 16px; }
-
-        h1 {
-            color: #ffffff;
-            font-size: 22px;
-            font-weight: 500;
-            margin-bottom: 8px;
-        }
-
-        .subtitle {
-            color: #888888;
-            font-size: 15px;
-            margin-bottom: 32px;
-        }
-
-        .spinner {
-            width: 36px;
-            height: 36px;
-            border: 3px solid rgba(255,255,255,0.15);
-            border-top-color: #ffffff;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 0 auto 20px;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .form { display: none; text-align: left; }
-
-        label {
-            display: block;
-            color: #888888;
-            font-size: 13px;
-            margin-bottom: 6px;
-            margin-top: 16px;
-        }
-
+        h1 { color: #ffffff; font-size: 22px; font-weight: 500; margin-bottom: 8px; }
+        .subtitle { color: #888888; font-size: 15px; margin-bottom: 32px; }
+        .form { text-align: left; }
+        label { display: block; color: #888888; font-size: 13px; margin-bottom: 6px; margin-top: 16px; }
         input[type="password"] {
             width: 100%;
             background: #111111;
@@ -76,9 +41,7 @@
             outline: none;
             transition: border-color 0.2s;
         }
-
         input[type="password"]:focus { border-color: rgba(255,255,255,0.4); }
-
         .btn {
             display: block;
             width: 100%;
@@ -93,10 +56,8 @@
             cursor: pointer;
             transition: opacity 0.2s;
         }
-
         .btn:hover { opacity: 0.85; }
         .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
         .error {
             display: none;
             background: rgba(226,75,74,0.15);
@@ -108,12 +69,9 @@
             margin-top: 16px;
             text-align: center;
         }
-
-        .success { display: none; }
+        .success { display: none; text-align: center; }
         .success-icon { font-size: 48px; margin-bottom: 16px; }
-        .success h1 { color: #ffffff; margin-bottom: 8px; }
         .success p { color: #888888; font-size: 15px; }
-
         .app-link {
             display: inline-block;
             margin-top: 24px;
@@ -125,40 +83,30 @@
             font-weight: 500;
             font-size: 15px;
         }
-
         .app-link:hover { opacity: 0.85; }
     </style>
 </head>
 <body>
 <div class="card">
 
-    <div id="loading">
-        <div class="lock">🔒</div>
-        <h1>StayLocked</h1>
-        <p class="subtitle">Verifying your reset link...</p>
-        <div class="spinner"></div>
-    </div>
-
-    <div class="form" id="resetForm">
+    <div id="resetForm">
         <div class="lock">🔒</div>
         <h1>Create new password</h1>
         <p class="subtitle">Choose a strong password for your account</p>
-
-        <label for="password">New password</label>
-        <input type="password" id="password" placeholder="At least 8 characters" />
-
-        <label for="confirm">Confirm password</label>
-        <input type="password" id="confirm" placeholder="Repeat your password" />
-
-        <div class="error" id="errorMsg"></div>
-
-        <button class="btn" id="submitBtn" onclick="updatePassword()">Update password</button>
+        <div class="form">
+            <label for="password">New password</label>
+            <input type="password" id="password" placeholder="At least 8 characters" />
+            <label for="confirm">Confirm password</label>
+            <input type="password" id="confirm" placeholder="Repeat your password" />
+            <div class="error" id="errorMsg"></div>
+            <button class="btn" id="submitBtn" onclick="updatePassword()">Update password</button>
+        </div>
     </div>
 
     <div class="success" id="successScreen">
         <div class="success-icon">✅</div>
         <h1>Password updated!</h1>
-        <p>Your password has been changed successfully. You can now sign in to StayLocked.</p>
+        <p>Your password has been changed. You can now sign in to StayLocked.</p>
         <a class="app-link" href="staylocked://">Open StayLocked</a>
     </div>
 
@@ -171,6 +119,9 @@
     const { createClient } = supabase
     const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
+    let tokenHash = null
+    let tokenType = null
+
     function showError(msg) {
         const el = document.getElementById('errorMsg')
         el.textContent = msg
@@ -181,27 +132,14 @@
         document.getElementById('errorMsg').style.display = 'none'
     }
 
-    async function init() {
+    function init() {
         const params = new URLSearchParams(window.location.search)
-        const tokenHash = params.get('token_hash')
-        const type = params.get('type')
+        tokenHash = params.get('token_hash')
+        tokenType = params.get('type')
 
-        if (!tokenHash || type !== 'recovery') {
-            document.getElementById('loading').querySelector('.subtitle').textContent = 'Invalid or expired reset link.'
-            document.getElementById('loading').querySelector('.spinner').style.display = 'none'
-            return
-        }
-
-        const { error } = await client.auth.verifyOtp({ token_hash: tokenHash, type: 'recovery' })
-
-        document.getElementById('loading').style.display = 'none'
-
-        if (error) {
-            document.getElementById('resetForm').style.display = 'block'
-            showError('This link has expired. Please request a new password reset.')
+        if (!tokenHash || tokenType !== 'recovery') {
+            showError('Invalid or expired reset link. Please request a new password reset.')
             document.getElementById('submitBtn').disabled = true
-        } else {
-            document.getElementById('resetForm').style.display = 'block'
         }
     }
 
@@ -224,10 +162,22 @@
         btn.disabled = true
         btn.textContent = 'Updating...'
 
-        const { error } = await client.auth.updateUser({ password })
+        const { error: verifyError } = await client.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: 'recovery'
+        })
 
-        if (error) {
-            showError(error.message || 'Something went wrong. Please try again.')
+        if (verifyError) {
+            showError('This link has expired. Please request a new password reset.')
+            btn.disabled = false
+            btn.textContent = 'Update password'
+            return
+        }
+
+        const { error: updateError } = await client.auth.updateUser({ password })
+
+        if (updateError) {
+            showError(updateError.message || 'Something went wrong. Please try again.')
             btn.disabled = false
             btn.textContent = 'Update password'
         } else {
