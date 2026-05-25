@@ -3,182 +3,240 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Opening StayLocked</title>
+    <title>Reset Password — StayLocked</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
             min-height: 100vh;
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #111111;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            padding: 20px;
         }
-        
-        .container {
-            text-align: center;
-            padding: 40px;
-            background: rgba(0, 0, 0, 0.4);
+
+        .card {
+            background: #1a1a1a;
+            border: 0.5px solid rgba(255,255,255,0.1);
             border-radius: 16px;
-            backdrop-filter: blur(10px);
+            padding: 40px;
+            width: 100%;
             max-width: 400px;
-            width: 90%;
+            text-align: center;
         }
-        
-        .logo {
-            font-size: 48px;
-            margin-bottom: 20px;
-        }
-        
+
+        .lock { font-size: 48px; margin-bottom: 16px; }
+
         h1 {
             color: #ffffff;
-            font-size: 24px;
-            margin-bottom: 10px;
-            font-weight: 600;
+            font-size: 22px;
+            font-weight: 500;
+            margin-bottom: 8px;
         }
-        
-        .status {
-            color: #b0b0b0;
-            font-size: 16px;
-            margin-bottom: 30px;
-            min-height: 24px;
+
+        .subtitle {
+            color: #888888;
+            font-size: 15px;
+            margin-bottom: 32px;
         }
-        
+
         .spinner {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(255, 255, 255, 0.2);
-            border-top: 4px solid #ffffff;
+            width: 36px;
+            height: 36px;
+            border: 3px solid rgba(255,255,255,0.15);
+            border-top-color: #ffffff;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 20px;
         }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .form { display: none; text-align: left; }
+
+        label {
+            display: block;
+            color: #888888;
+            font-size: 13px;
+            margin-bottom: 6px;
+            margin-top: 16px;
         }
-        
-        .error-message {
-            color: #ff6b6b;
-            font-size: 14px;
-            margin-top: 20px;
+
+        input[type="password"] {
+            width: 100%;
+            background: #111111;
+            border: 0.5px solid rgba(255,255,255,0.15);
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 15px;
+            padding: 12px 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="password"]:focus { border-color: rgba(255,255,255,0.4); }
+
+        .btn {
+            display: block;
+            width: 100%;
+            background: #ffffff;
+            color: #111111;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            padding: 13px;
+            margin-top: 24px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover { opacity: 0.85; }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .error {
             display: none;
+            background: rgba(226,75,74,0.15);
+            border: 0.5px solid rgba(226,75,74,0.4);
+            color: #f09595;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            margin-top: 16px;
+            text-align: center;
         }
-        
-        .button {
+
+        .success { display: none; }
+        .success-icon { font-size: 48px; margin-bottom: 16px; }
+        .success h1 { color: #ffffff; margin-bottom: 8px; }
+        .success p { color: #888888; font-size: 15px; }
+
+        .app-link {
             display: inline-block;
-            background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
-            color: white;
-            padding: 12px 32px;
+            margin-top: 24px;
+            background: #ffffff;
+            color: #111111;
+            padding: 12px 28px;
             border-radius: 8px;
             text-decoration: none;
-            font-weight: 600;
-            margin-top: 20px;
-            transition: transform 0.2s, box-shadow 0.2s;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
+            font-weight: 500;
+            font-size: 15px;
         }
-        
-        .button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(59, 130, 246, 0.4);
-        }
-        
-        .button:active {
-            transform: translateY(0);
-        }
+
+        .app-link:hover { opacity: 0.85; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="logo">🔒</div>
-        <h1>Opening StayLocked</h1>
+<div class="card">
+
+    <div id="loading">
+        <div class="lock">🔒</div>
+        <h1>StayLocked</h1>
+        <p class="subtitle">Verifying your reset link...</p>
         <div class="spinner"></div>
-        <p class="status">Please wait...</p>
-        <div class="error-message" id="errorMessage">
-            <p>If the app didn't open, click below to download it from the App Store.</p>
-        </div>
-        <button class="button" id="fallbackButton" style="display: none;">
-            Download from App Store
-        </button>
     </div>
 
-    <script>
-        // Configuration
-        const APP_STORE_URL = 'https://apps.apple.com/us/app/staylocked/id6760554025';
-        const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.staylocked.app';
-        const DEEP_LINK_SCHEME = 'staylocked://reset-password';
-        const TIMEOUT_MS = 2500; // 2.5 seconds
+    <div class="form" id="resetForm">
+        <div class="lock">🔒</div>
+        <h1>Create new password</h1>
+        <p class="subtitle">Choose a strong password for your account</p>
 
-        // Get URL parameters
-        function getUrlParams() {
-            const url = new URL(window.location.href);
-            const params = new URLSearchParams(url.search);
-            
-            // Build query string from all parameters
-            let queryString = '';
-            for (const [key, value] of params) {
-                queryString += (queryString ? '&' : '?') + key + '=' + encodeURIComponent(value);
-            }
-            
-            return queryString;
+        <label for="password">New password</label>
+        <input type="password" id="password" placeholder="At least 8 characters" />
+
+        <label for="confirm">Confirm password</label>
+        <input type="password" id="confirm" placeholder="Repeat your password" />
+
+        <div class="error" id="errorMsg"></div>
+
+        <button class="btn" id="submitBtn" onclick="updatePassword()">Update password</button>
+    </div>
+
+    <div class="success" id="successScreen">
+        <div class="success-icon">✅</div>
+        <h1>Password updated!</h1>
+        <p>Your password has been changed successfully. You can now sign in to StayLocked.</p>
+        <a class="app-link" href="staylocked://">Open StayLocked</a>
+    </div>
+
+</div>
+
+<script>
+    const SUPABASE_URL = 'https://zqjkbdkndztskzsvbxnp.supabase.co'
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxamtiZGtuZHp0c2t6c3ZieG5wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5MTg2MjEsImV4cCI6MjA3NzQ5NDYyMX0.kodgF4U6ZTIQT-CQvfsaixxwTgapTUVOcJSVIo01RVM'
+
+    const { createClient } = supabase
+    const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+    function showError(msg) {
+        const el = document.getElementById('errorMsg')
+        el.textContent = msg
+        el.style.display = 'block'
+    }
+
+    function hideError() {
+        document.getElementById('errorMsg').style.display = 'none'
+    }
+
+    async function init() {
+        const params = new URLSearchParams(window.location.search)
+        const tokenHash = params.get('token_hash')
+        const type = params.get('type')
+
+        if (!tokenHash || type !== 'recovery') {
+            document.getElementById('loading').querySelector('.subtitle').textContent = 'Invalid or expired reset link.'
+            document.getElementById('loading').querySelector('.spinner').style.display = 'none'
+            return
         }
 
-        // Detect if user is on iOS or Android
-        function getStoreLink() {
-            const userAgent = navigator.userAgent.toLowerCase();
-            const isIOS = /iphone|ipad|ipod/.test(userAgent);
-            const isAndroid = /android/.test(userAgent);
-            
-            if (isAndroid) {
-                return PLAY_STORE_URL;
-            }
-            return APP_STORE_URL;
+        const { error } = await client.auth.verifyOtp({ token_hash: tokenHash, type: 'recovery' })
+
+        document.getElementById('loading').style.display = 'none'
+
+        if (error) {
+            document.getElementById('resetForm').style.display = 'block'
+            showError('This link has expired. Please request a new password reset.')
+            document.getElementById('submitBtn').disabled = true
+        } else {
+            document.getElementById('resetForm').style.display = 'block'
+        }
+    }
+
+    async function updatePassword() {
+        hideError()
+        const password = document.getElementById('password').value
+        const confirm = document.getElementById('confirm').value
+        const btn = document.getElementById('submitBtn')
+
+        if (password.length < 8) {
+            showError('Password must be at least 8 characters.')
+            return
         }
 
-        // Try to open the app
-        function tryOpenApp() {
-            const params = getUrlParams();
-            const deepLink = DEEP_LINK_SCHEME + params;
-            
-            console.log('Attempting to open:', deepLink);
-            
-            // Try to open the deep link
-            window.location.href = deepLink;
-            
-            // If app didn't open, show fallback after timeout
-            setTimeout(showFallback, TIMEOUT_MS);
+        if (password !== confirm) {
+            showError('Passwords do not match.')
+            return
         }
 
-        // Show fallback button if app didn't open
-        function showFallback() {
-            const statusEl = document.querySelector('.status');
-            const errorEl = document.getElementById('errorMessage');
-            const buttonEl = document.getElementById('fallbackButton');
-            const storeLink = getStoreLink();
-            
-            // Update UI
-            statusEl.textContent = 'App not found';
-            errorEl.style.display = 'block';
-            buttonEl.style.display = 'inline-block';
-            buttonEl.href = storeLink;
-            
-            // Actually redirect after showing for a moment
-            setTimeout(() => {
-                window.location.href = storeLink;
-            }, 3000);
-        }
+        btn.disabled = true
+        btn.textContent = 'Updating...'
 
-        // Start the process
-        window.addEventListener('load', tryOpenApp);
-    </script>
+        const { error } = await client.auth.updateUser({ password })
+
+        if (error) {
+            showError(error.message || 'Something went wrong. Please try again.')
+            btn.disabled = false
+            btn.textContent = 'Update password'
+        } else {
+            document.getElementById('resetForm').style.display = 'none'
+            document.getElementById('successScreen').style.display = 'block'
+        }
+    }
+
+    init()
+</script>
 </body>
 </html>
